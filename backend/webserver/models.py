@@ -1,7 +1,8 @@
+from datetime import datetime
 from email.policy import default
-from random import choices
-from unittest.util import _MAX_LENGTH
+from tabnanny import verbose
 from django.db import models
+
 
 
 class Author(models.Model):
@@ -13,20 +14,21 @@ class Author(models.Model):
         return self.display_name
 
 class FollowRequest(models.Model):
-    sender =  models.ForeignKey(Author,related_name='sender',on_delete=models.CASCADE)
-    receiver =  models.ForeignKey(Author,related_name='receiver',on_delete=models.CASCADE) 
+    sender =  models.ForeignKey(Author,related_name="sender",on_delete=models.CASCADE)
+    receiver =  models.ForeignKey(Author,related_name="receiver",on_delete=models.CASCADE) 
 
 
 class Follow(models.Model):
-    follower = models.ForeignKey(Author,related_name='follower',on_delete=models.CASCADE)
-    followee = models.ForeignKey(Author,related_name='followee',on_delete=models.CASCADE)
+    follower = models.ForeignKey(Author,related_name="follower",on_delete=models.CASCADE)
+    followee = models.ForeignKey(Author,related_name="followee",on_delete=models.CASCADE)
 
 class Post(models.Model):
 
     author = models.ForeignKey(Author,on_delete=models.CASCADE)
 
-    created_at = models.CharField(max_length=200,null=False,blank=False)
-    edited_at = models.CharField(max_length=200)
+    created_at = models.DateTimeField(verbose_name="date created",null=False, blank=False, default = datetime.now)
+
+    edited_at = models.DateTimeField("date edited")
 
     title = models.CharField(max_length=200)
 
@@ -50,8 +52,36 @@ class Post(models.Model):
         ("text/markdown","Markdown text")
     ]
 
-    content_type = models.CharField(max_length=200,choices=CONTENT_TYPE_CHOICES,default="text/plain")
+    content_type = models.CharField(max_length=200,choices=CONTENT_TYPE_CHOICES,null=False,default="text/plain")
+
+    content = models.CharField(max_length=200)
 
 
+class Comment(models.Model):
+    author = models.ForeignKey(Author,on_delete=models.CASCADE)
+
+    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+
+    content = models.CharField(max_length=200)
+
+    created_at = models.DateTimeField("created_at")
+
+    CONTENT_TYPE_CHOICES = [
+        ("text/plain","Plain text"),
+        ("text/markdown","Markdown text")
+    ]
+
+    content_type = models.CharField(max_length=200,choices=CONTENT_TYPE_CHOICES,null=False, default="text/plain")
+
+
+
+
+
+class Like(models.Model):
+    author = models.ForeignKey(Author,on_delete=models.CASCADE)
+
+    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+
+    comment = models.ForeignKey(Comment,on_delete=models.CASCADE)
 
 # Create your models here.

@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import Author
+from .models import Author, Post
 
 
 class AuthorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Author
         fields = ['url', 'id', 'display_name', 'profile_image', 'github_handle']
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['author','created_at','edited_at','title','description','source','origin','unlisted']
 
 class AuthorRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)

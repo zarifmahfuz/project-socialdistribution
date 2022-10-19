@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from .models import Author
+from .models import Author, Post
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -80,4 +80,5 @@ admin.site.register(Author, UserAdmin)
 # unregister the Group model from admin.
 admin.site.unregister(Group)
 
+admin.site.register(Post)
 # Register your models here.

@@ -5,7 +5,9 @@ from .views import(
     AuthorsView,
     AuthorRegistrationView,
     LoginView,
-    LogoutView
+    LogoutView,
+    PostView,
+    AllPosts
 )
 
 # first argument, endpoint, second argument is the view that calling the url will send the request to
@@ -16,4 +18,6 @@ urlpatterns = [
     path('register/', AuthorRegistrationView.as_view()),
     path('login/', LoginView.as_view()),
     path('logout/', LogoutView.as_view()),
+    path('authors/<int:pk>/posts/<int:post_id>/',PostView.as_view()),
+    path('authors/<int:pk>/posts/',AllPosts.as_view())
 ]

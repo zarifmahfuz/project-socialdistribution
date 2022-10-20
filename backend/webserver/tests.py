@@ -1,8 +1,15 @@
 from django.test import TestCase
-from  webserver.models import Author, FollowRequest
+from  webserver.models import Author, FollowRequest, Post
 from rest_framework.test import APITestCase
 from rest_framework import status
 from unittest import mock
+#from datetime import datetime
+import datetime
+from django.utils import timezone
+from django.utils.timezone import utc
+
+
+
 
 
 class AuthorTestCase(TestCase):
@@ -217,3 +224,56 @@ class LogoutTestCase(APITestCase):
         """Always logs out a request"""
         response = self.client.post("/logout/")
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+class PostTestCase(APITestCase):
+    
+    def test_get(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        current_date_string = datetime.datetime.utcnow().replace(tzinfo=utc)
+        post_1 = Post.objects.create(author =author_1,created_at=current_date_string,title="Test Post",description="Testing post",source="source",origin="origin",unlisted=False)
+        url = f'/authors/{author_1.id}/posts/{post_1.id}/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], "Test Post")
+    
+    
+    def test_get_404(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        fake_post_id = 590385093845945
+        url = f'/authors/{author_1.id}/posts/{fake_post_id}/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+
+    def test_post_all_fields(self):
+        """POST request works on all editable data fields"""
+        author_1 = Author.objects.create() 
+        current_date_string = datetime.datetime.utcnow().replace(tzinfo=utc)
+        post_1 = Post.objects.create(author =author_1,created_at=current_date_string,edited_at=current_date_string,title="Test Post",description="Testing post",source="source",origin="origin",unlisted=False)
+        url = f'/authors/{author_1.id}/posts/{post_1.id}/'
+        self.client.force_authenticate(user=mock.Mock())
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+        }
+        response = self.client.post(url,data=payload)
+        self.assertEqual(response.data["title"], "Mark McGoey")
+        self.assertEqual(response.data["description"], "new description")
+        
+class AllPostTestCase(APITestCase):
+     def test_get(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        current_date_string = datetime.datetime.utcnow().replace(tzinfo=utc)
+        Post.objects.create(author =author_1,created_at=current_date_string,edited_at=current_date_string,title="Test Post 1",description="Testing post 1",source="source",origin="origin",unlisted=False)
+        Post.objects.create(author =author_1,created_at=current_date_string,edited_at=current_date_string,title="Test Post 2",description="Testing post 2",source="source",origin="origin",unlisted=False)
+        url = f'/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        post_1 = response.data[0]
+        post_2 = response.data[1]
+        self.assertEqual(post_1["description"], "Testing post 1")
+        self.assertEqual(post_2["description"], "Testing post 2")

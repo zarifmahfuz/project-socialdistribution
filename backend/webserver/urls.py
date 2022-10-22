@@ -6,6 +6,8 @@ from .views import(
     AuthorRegistrationView,
     LoginView,
     LogoutView,
+    PostView,
+    AllPosts,
     FollowRequestsView,
     InboxView,
 )
@@ -20,4 +22,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view()),
     path('authors/<str:author_id>/follow-requests/', FollowRequestsView.as_view()),
     path('authors/<str:author_id>/inbox/', InboxView.as_view()),
+    path('authors/<str:pk>/posts/<int:post_id>/',PostView.as_view()),
+    path('authors/<str:pk>/posts/',AllPosts.as_view()),
 ]

@@ -17,6 +17,8 @@ class UpdatePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['title','description','unlisted','content']
+    
+    
 
 class CreatePostSerializer(serializers.ModelSerializer):
     class Meta:

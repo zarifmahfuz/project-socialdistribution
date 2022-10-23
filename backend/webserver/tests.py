@@ -1,3 +1,4 @@
+from ast import In
 from django.test import TestCase
 from webserver.models import Author, FollowRequest, Inbox, Post, Inbox, Follow
 from rest_framework.test import APITestCase
@@ -481,7 +482,7 @@ class PostTestCase(APITestCase):
         url = f'/api/authors/{author_1.id}/posts/{post_1.id}/'
         self.client.force_authenticate(user=mock.Mock())
         response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         
     def test_cannot_get_friends_post(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
@@ -504,7 +505,7 @@ class PostTestCase(APITestCase):
         url = f'/api/authors/{author_1.id}/posts/{post_1.id}/'
         self.client.force_authenticate(user=mock.Mock())
         response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)   
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)   
 
     def test_get_404(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
@@ -514,6 +515,7 @@ class PostTestCase(APITestCase):
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
+
 
     def test_edit_posts(self):
         """POST request works on all editable data fields"""
@@ -662,7 +664,7 @@ class PostTestCase(APITestCase):
         }
         response = self.client.post(url,data=payload)
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-    
+       
     def test_cannot_edit_private_post(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
         author_1.set_password("pass123")
@@ -682,10 +684,20 @@ class PostTestCase(APITestCase):
         )
         url = f'/api/authors/{author_1.id}/posts/{post_1.id}/'
         self.client.force_authenticate(user=author_1)
-        self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
-        response = self.client.delete(url)
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content"
+        }
+        response = self.client.post(url,data=payload)
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
+        self.assertNotEqual(post_1.title, payload["title"])
+        self.assertNotEqual(post_1.description, payload["description"])
+        self.assertNotEqual(post_1.unlisted, payload["unlisted"])
+        self.assertNotEqual(post_1.content, payload["content"])
+        
+        
     
     def test_cannot_edit_friend_only_post(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
@@ -702,14 +714,22 @@ class PostTestCase(APITestCase):
             source="source",
             origin="origin",
             unlisted=False,
-            visibility="PRIVATE"
+            visibility="FRIENDS"
         )
         url = f'/api/authors/{author_1.id}/posts/{post_1.id}/'
         self.client.force_authenticate(user=author_1)
-        self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
-        response = self.client.delete(url)
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content"
+        }
+        response = self.client.post(url,data=payload)
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
+        self.assertNotEqual(post_1.title, payload["title"])
+        self.assertNotEqual(post_1.description, payload["description"])
+        self.assertNotEqual(post_1.unlisted, payload["unlisted"])
+        self.assertNotEqual(post_1.content, payload["content"])
 
     def test_cannot_delete_friend_only_post(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
@@ -758,45 +778,110 @@ class PostTestCase(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
+    
+    def test_cannot_edit_deleted_post(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_1.set_password("pass123")
+        author_1.save()
+        request_payload = {"username": "author_1", "password": "pass123"}
+        self.client.post("/login/", data=request_payload, format="json")
+        current_date_string = datetime.datetime.utcnow().replace(tzinfo=utc)
+        post_1 = Post.objects.create(
+            author =author_1,
+            created_at=current_date_string,
+            title="Test Post",
+            description="Testing post",
+            source="source",
+            origin="origin",
+            unlisted=False,
+            visibility="PUBLIC"
+        )
+        url = f'/api/authors/{author_1.id}/posts/{post_1.id}/'
+        self.client.force_authenticate(user=author_1)
+        self.assertEqual(Post.objects.filter(author=author_1.id).count(),1)
+        response = self.client.delete(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(Post.objects.filter(author=author_1.id).count(),0)
 
-
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content"
+        }
+        response = self.client.post(url,data=payload)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+      
 
 class AllPostTestCase(APITestCase):
     def test_get(self):
-        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author = Author.objects.create(username="author", display_name="author")
         current_date_string = datetime.datetime.utcnow().replace(tzinfo=utc)
         Post.objects.create(
-            author =author_1,
+            author =author,
             created_at=current_date_string,
-            edited_at=current_date_string,
-            title="Test Post 1",
-            description="Testing post 1",
+            title="Test Post ",
+            description="Testing post",
             source="source",
             origin="origin",
             unlisted=False,
             visibility = "PUBLIC"
         )
        
+        url = f'/api/authors/{author.id}/posts/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        post_1 = response.data[0]
+        self.assertEqual(post_1["description"], "Testing post")
+    
+    def test_get_most_recent_post(self):
+        author = Author.objects.create(username="author", display_name="author")
         Post.objects.create(
-            author=author_1,
-            created_at=current_date_string,
-            edited_at=current_date_string,
+            author =author,
+            title="Test Post 1",
+            description="Testing post 1",
+            unlisted=False,
+            visibility = "PUBLIC"
+        )
+       
+        Post.objects.create(
+            author=author,
             title="Test Post 2",
             description="Testing post 2",
             source="source",
             origin="origin",
             unlisted=False
         )
-        url = f'/api/authors/{author_1.id}/posts/'
+
+        Post.objects.create(
+            author=author,
+            title="Test Post 3",
+            description="Testing post 3",
+            unlisted=False
+        )
+
+        Post.objects.create(
+            author=author,
+            title="Test Post 4",
+            description="Testing post 4",
+            unlisted=False
+        )
+
+        url = f'/api/authors/{author.id}/posts/'
         self.client.force_authenticate(user=mock.Mock())
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        post_1 = response.data[0]
-        post_2 = response.data[1]
-        self.assertEqual(post_1["description"], "Testing post 1")
+        # since the posts are ordered in descending order the post that was last created should be first in the list
+        post_4 = response.data[0]
+        post_3 = response.data[1]
+        post_2 = response.data[2]
+        post_1 = response.data[3]
+        self.assertEqual(post_4["description"], "Testing post 4")
+        self.assertEqual(post_3["description"], "Testing post 3")
         self.assertEqual(post_2["description"], "Testing post 2")
-    
+        self.assertEqual(post_1["description"], "Testing post 1")
+ 
     def test_send_friend_post_to_inbox(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
         author_1.set_password("pass123")
@@ -804,7 +889,13 @@ class AllPostTestCase(APITestCase):
         request_payload = {"username": "author_1", "password": "pass123"}
         self.client.post("/login/", data=request_payload, format="json")
         author_2 = Author.objects.create(username="author_2", display_name="author_2")
-        Follow.objects.create(follower=author_2,followee=author_1) 
+        author_3 = Author.objects.create(username="author_3", display_name="author_3")
+        author_4 = Author.objects.create(username="author_4", display_name="author_4")
+        author_5 = Author.objects.create(username="author_5", display_name="author_5")
+        Follow.objects.create(follower=author_2,followee=author_1)
+        Follow.objects.create(follower=author_3,followee=author_1)
+        Follow.objects.create(follower=author_4,followee=author_1)
+        Follow.objects.create(follower=author_5,followee=author_1)
         payload = {
             "title": "Mark McGoey",
             "description": "new description",
@@ -819,12 +910,11 @@ class AllPostTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         inbox = Inbox.objects.first()
         self.assertEqual(author_2, inbox.target_author)
-        self.assertEqual(1, Inbox.objects.count())
+        self.assertEqual(4, Inbox.objects.count())
         self.assertEqual(payload["title"], inbox.post.title)
         self.assertEqual(payload["description"], inbox.post.description)
         self.assertEqual(payload["visibility"], inbox.post.visibility)
         self.assertEqual(payload["content_type"], inbox.post.content_type)
-    
 
     def test_send_private_post_to_inbox(self):
         author_1 = Author.objects.create(username="author_1", display_name="author_1")
@@ -840,7 +930,6 @@ class AllPostTestCase(APITestCase):
             "content":"Some new content",
             "visibility":"PRIVATE",
             "content_type":"text/plain",
-
             "receiver": {
             "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
             "id": author_2.id,
@@ -858,5 +947,106 @@ class AllPostTestCase(APITestCase):
         self.assertEqual(payload["unlisted"],inbox.post.unlisted)
         self.assertEqual(payload["visibility"],inbox.post.visibility)
         self.assertEqual(payload["content_type"],inbox.post.content_type)
+
+    def test_cannot_create_new_posts_for_other_authors(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        author_2.set_password("pass123")
+        author_2.save()
+        request_payload = {"username": "author_2", "password": "pass123"}
+        self.client.post("/login/", data=request_payload, format="json") 
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content",
+            "visibility":"FRIENDS",
+            "content_type":"text/plain"
+        }
+        url = f'/api/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=author_2)
+        response = self.client.post(url,data=payload,format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    
+    def test_create_post_missing_fields(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_1.set_password("pass123")
+        author_1.save()
+        request_payload = {"username": "author_1", "password": "pass123"}
+        self.client.post("/login/", data=request_payload, format="json") 
+       
+
+        payload = {
+            "unlisted":True,
+            "content":"Some new content",
+            "visibility":"PUBLIC",     
+        }
+        
+        url = f'/api/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=author_1)
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+    
+    def test_request_not_valid_when_receiver_not_given(self):
+        """Proper serializer fields need to be given"""
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_1.set_password("pass123")
+        author_1.save()
+        request_payload = {"username": "author_1", "password": "pass123"}
+        self.client.post("/login/", data=request_payload, format="json") 
+       
+
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content",
+            "visibility":"PRIVATE",
+            "content_type":"text/plain",
+            
+        }
+        
+        url = f'/api/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=author_1)
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+           
+    def test_receiver_does_not_exist(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_1.set_password("pass123")
+        author_1.save()
+        request_payload = {"username": "author_1", "password": "pass123"}
+        self.client.post("/login/", data=request_payload, format="json")
+        
+        payload = {
+            "title": "Mark McGoey",
+            "description": "new description",
+            "unlisted":True,
+            "content":"Some new content",
+            "visibility":"PRIVATE",
+            "content_type":"text/plain",
+            "receiver": {
+            "url": f'http://127.0.0.1:5054/authors/{5080980980}/',
+            "id": 5080980980,
+            }
+        }
+
+        url = f'/api/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=author_1)
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+
+    def test_get_author_has_no_posts(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        url = f'/api/authors/{author_1.id}/posts/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    
+    
+   
+
 
     

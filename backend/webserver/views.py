@@ -1,6 +1,5 @@
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
-from django.http import Http404
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 from .models import Author, FollowRequest, Inbox, Post,Follow
@@ -84,23 +83,22 @@ class PostView(APIView):
         return post
     
     def get(self,request,pk,post_id, *args, **kwargs):
-        author =self.get_author(pk=pk)
+        author =self.get_author(pk)
         post = self.get_post(post_id,author.id)
         if post.visibility == "PUBLIC":
             serializer = PostSerializer(post, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            raise Http404
+            return Response({'message': 'requested post is not public'}, status=status.HTTP_400_BAD_REQUEST)
+            
 
     def post(self, request, pk,post_id, *args, **kwargs):
-        author = self.get_author(pk=pk)
+        author = self.get_author(pk)
         post = self.get_post(post_id,author.id)
 
         if post.visibility == "PUBLIC":   
             if author.id == request.user.id:
-                post = self.get_post(post_id,author.id)
-                date_edited = datetime.datetime.utcnow().replace(tzinfo=utc)
-                post.edited_at = date_edited
+                post.edited_at = datetime.datetime.utcnow().replace(tzinfo=utc)
                 serializer = UpdatePostSerializer(instance=post,data=request.data,partial=True,context={'request': request})
                 if serializer.is_valid():
                     serializer.save()
@@ -117,18 +115,11 @@ class PostView(APIView):
         post = self.get_post(post_id,author.id)
         if post.visibility == "PUBLIC":
             if author.id == request.user.id:
-                post = self.get_post(post_id,author.id)
                 post.delete()
+                return Response({"message":"Object deleted!"}, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'You cannot delete another authors post'}, status=status.HTTP_400_BAD_REQUEST) 
-            return Response({"message":"Object deleted!"}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'You can only delete public posts'}, status=status.HTTP_400_BAD_REQUEST)
-    
-   
-    
-    
-
+        return Response({'message': 'You can only delete public posts'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AllPosts(APIView):
@@ -140,7 +131,7 @@ class AllPosts(APIView):
 
     def get(self, request,pk, *args, **kwargs):
         author = self.get_author(pk)
-        posts = Post.objects.filter(author=author.id).all()
+        posts = author.post_set.all().order_by("-created_at")
         serializer = PostSerializer(posts, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -160,8 +151,7 @@ class AllPosts(APIView):
                     visibility=serializer.data["visibility"]
                 )
                 if new_post.visibility == "FRIENDS" or new_post.visibility == "PUBLIC":
-                    author_one_followers = author.followed_by_authors
-                    for follow in author_one_followers.iterator():
+                    for follow in author.followed_by_authors.iterator():
                         with transaction.atomic():
                             Inbox.objects.create(target_author=follow.follower,post=new_post)
                 elif new_post.visibility == "PRIVATE":
@@ -174,10 +164,14 @@ class AllPosts(APIView):
                             return Response({'message': f'receiver author with id {private_post_serializer.data["receiver"]["id"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
                         with transaction.atomic():
                             Inbox.objects.create(target_author=receiver, post=new_post)
+                        return Response({'message': 'OK'}, status=status.HTTP_201_CREATED) 
                     else:
-                        print("What are the errors",private_post_serializer.errors)        
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        else:
+            return Response({'message': 'You cannot create a post for another user'}, status=status.HTTP_400_BAD_REQUEST)
 
 class FollowRequestsView(APIView):
     authentication_classes = [BasicAuthentication]

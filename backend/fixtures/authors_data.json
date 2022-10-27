@@ -1,0 +1,114 @@
+[
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"cashJenkins",
+            "id":1,
+            "created_at":"2022-06-23T03:25:09.184425Z",
+            "display_name": "cjenkins123",
+            "github_handle": "cashj45"
+        }
+
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"aEverett4632",
+            "id":2,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "athena_everett",
+            "github_handle": "everettCodes123"
+        }
+        
+    },
+
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"urielShelton2341",
+            "id":3,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "UltimateBeast123",
+            "github_handle": "ultimateBeast"
+        }
+
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"AlexanderStark",
+            "id":4,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "brighthulk",
+            "github_handle": "alex_stark"
+        }
+        
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"shaunGood123",
+            "id":5,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "fbi_surveillance_team",
+            "github_handle": "shaunGood123"
+        }
+
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"shilohRubio",
+            "id":6,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "sRubio",
+            "github_handle": "shyRubio"
+        }
+        
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"gretaJensen",
+            "id":7,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "jensens_flowers",
+            "github_handle": "jensenGreta"
+        }
+
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"reeseWagner",
+            "id":8,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "reese_wagner",
+            "github_handle": "reeseWagner232"
+        }
+        
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"ashish-mandy",
+            "id":9,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "ashMandy",
+            "github_handle": "ashMandyCodes"
+        }
+
+    },
+    {
+        "model":"webserver.Author",
+        "fields":{
+            "username":"tim-Anthhousa",
+            "id":10,
+            "created_at":"2022-10-23T03:25:09.184425Z",
+            "display_name": "tim_anthousa",
+            "github_handle": "tAnthousa231"
+        }
+        
+    }
+
+]

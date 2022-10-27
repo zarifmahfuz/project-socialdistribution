@@ -1,0 +1,9 @@
+[
+    {
+        "model":"webserver.Inbox",
+        "fields":{
+            "target_author":1,
+            
+        }
+    }
+]

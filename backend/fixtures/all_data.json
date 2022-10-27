@@ -691,8 +691,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":3,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"The new Macbook pro",
+            "description":"Just purchased the new macbook",
+            "content":"Just purchased the new macbook and it is incredible.",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -703,8 +704,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":4,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Lunch",
+            "description":"Went out for lunch with my friend Alex Stark",
+            "content":"At earls with Alex Stark",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -714,8 +716,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":5,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Apple products",
+            "description":"A post about the apple watch",
+            "content":"I just purchased an apple watch.",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -724,8 +727,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":6,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Exam",
+            "description":"Finished my exam",
+            "content":"Just finished my exam and it was very hard",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -734,8 +738,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":7,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Saw Shaun Good today",
+            "description":"Saw Shaun good at the grocery store",
+            "content":"Saw Shaun good for the first time in 10 years",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -746,8 +751,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":8,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Went to the movies",
+            "description":"Went to the movies with Athena Everett",
+            "content":"Athena and I watched the new spider man movie",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -756,8 +762,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":9,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"Finished my dergee!",
+            "description":"Graduated from university",
+            "content":"Just finished my last examine and have officialy graduated!",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }
@@ -766,8 +773,9 @@
         "model":"webserver.Post",
         "fields":{
             "author":10,
-            "title":"My first Post!",
-            "description":"Test out this new website with my first post",
+            "title":"The new PS5",
+            "description":"Finally purchased the new ps5",
+            "content":"Went to EB games today and purcahsed a Ps5",
             "created_at":"2022-06-23T03:25:09.184425Z",
             "unlisted":false
         }

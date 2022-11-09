@@ -16,6 +16,8 @@ from .views import(
     AllPublicPostsView,
     NodesView,
     NodeDetailView,
+    LikePostView,
+    LikedPostView
 )
 
 # first argument, endpoint, second argument is the view that calling the url will send the request to
@@ -36,4 +38,6 @@ urlpatterns = [
     path('authors/<str:pk>/posts/<int:post_id>/',PostView.as_view()),
     path('authors/<str:pk>/posts/',AllPosts.as_view()),
     path('posts/', AllPublicPostsView.as_view()),
+    path('authors/<str:pk>/posts/<int:post_id>/likes/',LikePostView.as_view()),
+    path('authors/<str:pk>/liked/',LikedPostView.as_view()),
 ]

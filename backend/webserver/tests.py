@@ -1,5 +1,5 @@
 from django.test import TestCase
-from webserver.models import Author, FollowRequest, Inbox, Follow, Post, Node
+from webserver.models import Author, FollowRequest, Inbox, Follow, Post, Node, Like
 from rest_framework.test import APITestCase
 from rest_framework import status
 from unittest import mock, skip
@@ -1728,3 +1728,376 @@ class CustomPermissionsTestCase(APITestCase):
         self.client.force_authenticate(user=author_1)
         response = self.client.get(url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+class LikePostProcessorTestCase(APITestCase):
+    
+    def test_create_like_and_update_inbox(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        
+        post_1 = Post.objects.create(
+            author =author_2,
+            title="Test Post",
+            description="Testing post",
+            source="source",
+            origin="origin",
+            unlisted=False,
+            content_type= "text/plain",
+            content="Some content",
+            visibility= "PUBLIC"
+        )
+        
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                "id": author_1.id,
+            },
+            "post":{
+                'id':post_1.id,
+                'author':{
+                    "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
+                    "id":author_2.id,                   
+                }
+            }
+        }
+        self.assertEqual(0, Like.objects.count())
+        url = f'/api/authors/{author_2.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(1, Like.objects.count())
+        like = Like.objects.first()
+        self.assertEqual(author_1, like.liker)
+        self.assertEqual(post_1,like.post)
+        self.assertEqual(1, Inbox.objects.count())
+        inbox = Inbox.objects.first()
+        self.assertEqual(author_2, inbox.target_author)
+        self.assertEqual(like,inbox.like)
+    
+    def test_can_only_like_post_once(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        
+        post_1 = Post.objects.create(
+            author =author_2,
+            title="Test Post",
+            description="Testing post",
+            source="source",
+            origin="origin",
+            unlisted=False,
+            content_type= "text/plain",
+            content="Some content",
+            visibility= "PUBLIC"
+        )
+        
+        
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                "id": author_1.id,
+            },
+            "post":{
+                'id':post_1.id,
+                "author":{
+                    "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
+                    "id":author_2.id, 
+                }
+            }
+        }
+        
+        self.assertEqual(0, Like.objects.count())
+        url = f'/api/authors/{author_2.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(1, Like.objects.count())
+        like = Like.objects.first()
+        self.assertEqual(author_1, like.liker)
+        self.assertEqual(1, Inbox.objects.count())
+        inbox = Inbox.objects.first()
+        self.assertEqual(author_2, inbox.target_author)
+        self.assertEqual(like,inbox.like)
+
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                "id": author_1.id,
+            },
+            "post":{
+                'id':post_1.id,
+                "author":{
+                    "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
+                    "id":author_2.id, 
+                }
+            }
+        }
+        self.assertEqual(1, Like.objects.count())
+        url = f'/api/authors/{author_2.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+    
+    def test_like_not_valid_when_required_fields_are_not_given(self):
+        """Proper serializer fields need to be given"""
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        post_1 = Post.objects.create(
+            author =author_2,
+            title="Test Post",
+            description="Testing post",
+            source="source",
+            origin="origin",
+            unlisted=False,
+            content_type= "text/plain",
+            content="Some content",
+            visibility= "PUBLIC"
+        )
+        # author field is missing in the post 
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                "id": author_1.id,
+            },
+            "post":{
+                'id':post_1.id,
+                
+            }
+        }
+       
+        url = f'/api/authors/{author_2.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEqual(0, FollowRequest.objects.count())
+
+    def test_reverse_likes(self):
+        """Author 1 can like author 2s post and Author 2 can like Author 1s post"""
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+
+        post_1 = Post.objects.create(
+            author =author_1,
+            title="Post 1",
+            description="Testing post",
+            visibility= "PUBLIC",
+            content="Testing Post 1"
+        )
+        post_2 = Post.objects.create(
+            author=author_2,
+            title="Post 2",
+            description="Testing post 2",
+            visibility="PRIVATE",
+            content="Testing post 2"
+        )
+        
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                "id": author_1.id,
+            },
+            "post":{
+                'id':post_2.id,
+                "author":{
+                    "id":author_2.id,
+                    "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
+                }
+            }
+        }
+        url = f'/api/authors/{author_2.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(1, Like.objects.count())
+        like = Like.objects.first()
+        self.assertEqual(author_1, like.liker)
+        self.assertEqual(post_2,like.post)
+        self.assertEqual(1, Inbox.objects.count())
+        inbox = Inbox.objects.first()
+        self.assertEqual(author_2, inbox.target_author)
+        self.assertEqual(like,inbox.like)
+        payload = {
+            "type": "like",
+            "liker": {
+                "url": f'http://127.0.0.1:5054/authors/{author_2.id}/',
+                "id": author_2.id,
+            },
+            "post":{
+                'id':post_1.id,
+                "author":{
+                    "id":author_1.id,
+                    "url": f'http://127.0.0.1:5054/authors/{author_1.id}/',
+                }
+            }
+        }
+        url = f'/api/authors/{author_1.id}/inbox/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.post(url, data=payload, format="json")
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(2, Like.objects.count())
+        like_2 = Like.objects.last()
+        inbox_2 = Inbox.objects.last()
+        self.assertEqual(post_1,like_2.post)
+        self.assertEqual(author_2,like_2.liker) 
+        self.assertEqual(2, Inbox.objects.count())
+        self.assertEqual(author_1, inbox_2.target_author)
+        self.assertEqual(like_2,inbox_2.like)
+
+                
+class LikedPostViewTestCase(APITestCase):
+    def test_get_liked_posts(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        post_1 = Post.objects.create(
+            author =author_2,
+            title="Test Post",
+            description="Testing post",
+            source="source",
+            origin="origin",
+            unlisted=False,
+            content_type= "text/plain",
+            content="Some content",
+            visibility= "PUBLIC"
+        )
+        post_2 = Post.objects.create(
+            author=author_2,
+            title="Post 2",
+            description="Sample description 2",
+            visibility="PUBLIC",
+            content_type="text/plain",
+            content="Public service announcement"
+        )
+
+        Like.objects.create(liker=author_1,post=post_1)
+        Like.objects.create(liker=author_1,post=post_2)
+        url = f'/api/authors/{author_1.id}/liked/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url,format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['liker']['id'],author_1.id)
+        self.assertEqual(response.data[1]['liker']['id'],author_1.id)
+        self.assertEqual(response.data[0]['post'],'http://testserver/api/authors/1/posts/1/')
+        self.assertEqual(response.data[1]['post'],'http://testserver/api/authors/1/posts/2/')
+    
+    def test_get_liked_public_posts_only(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        author_3 = Author.objects.create(username="author_3", display_name="author_3")
+        post_1 = Post.objects.create(
+            author =author_2,
+            title="Post 1",
+            description="Testing post",
+            visibility= "PUBLIC",
+            content="Testing Post 1"
+        )
+        post_2 = Post.objects.create(
+            author=author_2,
+            title="Post 2",
+            description="Testing post 2",
+            visibility="PRIVATE",
+            content="Testing post 2"
+        )
+        post_3 = Post.objects.create(
+            author=author_3,
+            title="Post 3",
+            visibility="FRIENDS",
+            description="Testing post 3"   
+        )
+        post_4 = Post.objects.create(
+            author =author_2,
+            title="Post 4",
+            description="Testing post 4",
+            content="Some content",
+            visibility= "PUBLIC"
+        )
+        post_5 = Post.objects.create(
+            author =author_2,
+            title="Post 5",
+            description="Testing post 5",
+            content="Some content",
+            visibility= "PRIVATE"
+        )
+
+        Like.objects.create(liker=author_1,post=post_1)
+        Like.objects.create(liker=author_1,post=post_2)
+        Like.objects.create(liker=author_1,post=post_3)
+        Like.objects.create(liker=author_1,post=post_4)
+        Like.objects.create(liker=author_1,post=post_5)
+        self.assertEqual(5,Like.objects.count())
+        url = f'/api/authors/{author_1.id}/liked/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url,format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['liker']['id'],author_1.id)
+        self.assertEqual(response.data[1]['liker']['id'],author_1.id)
+        self.assertEqual(response.data[0]['post'],'http://testserver/api/authors/1/posts/1/')
+        self.assertEqual(response.data[1]['post'],'http://testserver/api/authors/1/posts/4/')
+
+    def test_no_posts_liked(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        url = f'/api/authors/{author_1.id}/liked/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url,format="json")
+        self.assertEqual(len(response.data),0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class LikePostViewTestCase(APITestCase):
+    def test_get_likes(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        author_2 = Author.objects.create(username="author_2", display_name="author_2")
+        author_3 = Author.objects.create(username="author_3", display_name="author_3")
+        author_4 = Author.objects.create(username="author_4", display_name="author_4")
+        author_5 = Author.objects.create(username="author_5", display_name="author_5")
+        author_6 = Author.objects.create(username="author_6", display_name="author_6")
+        post_1 = Post.objects.create(
+            author =author_1,
+            title="Post 1",
+            description="Testing post",
+            visibility= "PUBLIC",
+            content="Testing Post 1"
+        )
+        Like.objects.create(liker=author_1,post=post_1)
+        Like.objects.create(liker=author_2,post=post_1)
+        Like.objects.create(liker=author_3,post=post_1)
+        Like.objects.create(liker=author_4,post=post_1)
+        Like.objects.create(liker=author_5,post=post_1)
+        Like.objects.create(liker=author_6,post=post_1)
+        self.assertEqual(6,Like.objects.count())
+        url = f'/api/authors/{author_1.id}/posts/{post_1.id}/likes/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url,format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['liker']['id'],author_1.id)
+        self.assertEqual(response.data[1]['liker']['id'],author_2.id)
+        self.assertEqual(response.data[2]['liker']['id'],author_3.id)
+        self.assertEqual(response.data[3]['liker']['id'],author_4.id)
+        self.assertEqual(response.data[4]['liker']['id'],author_5.id)
+        self.assertEqual(response.data[5]['liker']['id'],author_6.id)
+        self.assertEqual(response.data[0]['post'],'http://testserver/api/authors/1/posts/1/')
+        self.assertEqual(response.data[1]['post'],'http://testserver/api/authors/2/posts/1/')
+        self.assertEqual(response.data[2]['post'],'http://testserver/api/authors/3/posts/1/')
+        self.assertEqual(response.data[3]['post'],'http://testserver/api/authors/4/posts/1/')
+        self.assertEqual(response.data[4]['post'],'http://testserver/api/authors/5/posts/1/')
+        self.assertEqual(response.data[5]['post'],'http://testserver/api/authors/6/posts/1/')
+    
+    def test_post_has_no_likes(self):
+        author_1 = Author.objects.create(username="author_1", display_name="author_1")
+        post_1 = Post.objects.create(
+            author =author_1,
+            title="Post 1",
+            description="Testing post",
+            visibility= "PUBLIC",
+            content="Testing Post 1"
+        )
+        url = f'/api/authors/{author_1.id}/posts/{post_1.id}/likes/'
+        self.client.force_authenticate(user=mock.Mock())
+        response = self.client.get(url,format="json")
+        self.assertEqual(len(response.data),0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

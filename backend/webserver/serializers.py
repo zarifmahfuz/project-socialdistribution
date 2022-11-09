@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Author, Follow, FollowRequest, Inbox, Post, Node
+from .models import Author, Follow, FollowRequest, Inbox, Post, Node, Like
 
 
 class AuthorSerializer(serializers.HyperlinkedModelSerializer):
@@ -13,6 +13,8 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id','author','created_at','edited_at','title','description','source','origin','unlisted','content_type','content','visibility']
+
+
 
 class UpdatePostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,13 +54,24 @@ class ActorSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     url = serializers.URLField()
 
-
+    
 class SendFollowRequestSerializer(serializers.Serializer):
     sender = ActorSerializer()
     receiver = ActorSerializer()
 
+
+class PostActorSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    author = ActorSerializer()
+
 class SendPrivatePostSerializer(serializers.Serializer):
     receiver = ActorSerializer()
+
+class SendLikeSerializer(serializers.Serializer):
+    liker = ActorSerializer()
+    post = PostActorSerializer()
+   
+
 
 class FollowRequestSerializer(serializers.ModelSerializer):
     sender = AuthorSerializer(read_only=True)
@@ -71,6 +84,15 @@ class FollowRequestSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super(FollowRequestSerializer, self).to_representation(instance)
         return data['sender']
+
+
+
+class LikePostSerializer(serializers.ModelSerializer):
+    liker = AuthorSerializer(read_only=True)
+    class Meta:
+        model = Like
+        fields = ['liker','post']
+   
 
 
 class AcceptOrDeclineFollowRequestSerializer(serializers.Serializer):
@@ -104,10 +126,10 @@ class InboxFollowRequestSerializer(FollowRequestSerializer):
 class InboxSerializer(serializers.ModelSerializer):
     post = PostSerializer(read_only=True)
     follow_request_received = InboxFollowRequestSerializer(read_only=True)
-
+    like = LikePostSerializer(read_only=True)
     class Meta:
         model = Inbox
-        fields = ['post', 'follow_request_received']
+        fields = ['post', 'follow_request_received','like']
 
     # https://www.django-rest-framework.org/api-guide/relations/#generic-relationships
     def to_representation(self, instance):
@@ -119,6 +141,9 @@ class InboxSerializer(serializers.ModelSerializer):
         elif instance.follow_request_received:
             type = 'follow'
             data = data['follow_request_received']
+        elif instance.like:
+            type = 'like'
+            data = data['like']
         else:
             raise Exception('Unexpected type of inbox item')
         data['type'] = type

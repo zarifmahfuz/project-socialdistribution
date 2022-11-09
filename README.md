@@ -65,7 +65,8 @@ API Information
 | /api/authors/<author_id>/followers/<foreign_author_id>/                | - | Checks if foreign_author_id is a follower of author_id [A] | Accepts a follow request [A] | Removes a follower [A] |
 | /api/authors/<author_id>/posts/               | Creates a new post for an author [A] | **Retrieves recent posts from an author [A][R]** | - | - |
 | /api/authors/<author_id>/posts/<post_id>/                | Update an authors post [A] | **Retrieves an authors post [A][R]** | - | Delete an authors post [A] |
-
+| /api/authors/<author_id>/posts/<post_id>/likes                | - | **Retrieves a list of likes on an authors post [A][R]** | - | - |
+| /api/authors/<author_id>/liked                | - | **Retrieves a list of likes from an author on public posts [A][R]** | - | - |
 ### Notes
 - [R] specifies that a remote request can be made to the route. In other words, only those routes marked with [R] accept remote requests. They have also been bolded for ease of navigability.
 - [A] specifies that the request must be authenticated
@@ -598,6 +599,85 @@ Delete the post for author id 5 with post id 55 -
     ]
 }
 ```
+
+### Retrieve a list of likes on an authors post
+#### Sample Usage
+Retreive a list of likes on author 2s post with post id 2 -
+<img width="1131" alt="image" src="https://user-images.githubusercontent.com/77307203/200704789-6f2d462b-8a43-4ddc-8cda-aaf243755d78.png">
+
+#### Sample Response
+```
+[
+    {
+        "liker": {
+            "url": "http://127.0.0.1:8000/api/authors/1/",
+            "id": 1,
+            "display_name": "cjenkins123",
+            "profile_image": "",
+            "github_handle": "cashj45"
+        },
+        "post": "http://127.0.0.1:8000/api/authors/1/posts/2/"
+    },
+    {
+        "liker": {
+            "url": "http://127.0.0.1:8000/api/authors/3/",
+            "id": 3,
+            "display_name": "UltimateBeast123",
+            "profile_image": "",
+            "github_handle": "ultimateBeast"
+        },
+        "post": "http://127.0.0.1:8000/api/authors/3/posts/2/"
+    }    
+]
+```
+#### Possible Status Codes
+- `200 OK`
+- `401 Unauthorized`
+- `404 Not Found`
+
+### Retrieve a list of likes made by an author on public posts
+#### Sample Usage
+Retreive a list of likes on public posts origninating from author with id 1 -
+<img width="1131" alt="image" src="https://user-images.githubusercontent.com/77307203/200707068-56a3ddb9-fce2-4aea-8759-7a3d161ff3f3.png">
+
+#### Sample Response
+```
+[
+    {
+        "liker": {
+            "url": "http://127.0.0.1:8000/api/authors/1/",
+            "id": 1,
+            "display_name": "cjenkins123",
+            "profile_image": "",
+            "github_handle": "cashj45"
+        },
+        "post": "http://127.0.0.1:8000/api/authors/1/posts/2/"
+    }
+] 
+]
+```
+#### Possible Status Codes
+- `200 OK`
+- `401 Unauthorized`
+- `404 Not Found`
+
+### Like an authors post
+#### Sample Usage
+Author with id 3 likes author 5s post with id 10-
+<img width="1131" alt="image" src="https://user-images.githubusercontent.com/77307203/200708953-54485be5-579a-42a6-84c5-779f483fcd83.png">
+
+#### Sample Response
+```
+{
+    "message": "OK"
+}
+```
+#### Possible Status Codes
+- `201 Created`
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
 
 #### Notes
 - Use the `page` query parameter to specify the page you would like to fetch. If you just specify the `page` query param without the `size`, a default size of 10 will be used

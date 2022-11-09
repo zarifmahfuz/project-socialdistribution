@@ -2,6 +2,7 @@ from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
+from urllib.parse import urljoin
 import urllib
 from .models import Author, Follow, FollowRequest, Inbox, Post, Like
 from .serializers import (AcceptOrDeclineFollowRequestSerializer, 
@@ -19,7 +20,7 @@ from .serializers import (AcceptOrDeclineFollowRequestSerializer,
                           AddNodeSerializer,
                           NodesListSerializer,
                           SendLikeSerializer,
-                          LikePostSerializer)
+                          PostLikeSerializer)
 from rest_framework.response import Response
 from rest_framework.authentication import BasicAuthentication
 from rest_framework import status, permissions
@@ -242,50 +243,44 @@ class AllPublicPostsView(APIView, PaginationHandlerMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class LikedPostView(APIView):
+class AuthorLikedView(APIView):
     authentication_classes = [BasicAuthentication]
 
     def get_author(self,pk):
         author = get_object_or_404(Author,pk=pk)
         return author
     
-    def get(self,requst,pk,*args,**kwargs):
+    def get(self,requst,pk):
         author = self.get_author(pk)
-        public_post = Post.objects.filter(visibility="PUBLIC").all()
-        liked = Like.objects.filter(liker=author.id).filter(post__in=public_post.values_list('id')).all()
-        serializer = LikePostSerializer(liked, many=True, context={'request': requst})
+        likes = Like.objects.filter(post__visibility="PUBLIC").filter(author=author).all()
+        serializer = PostLikeSerializer(likes, many=True, context={'request': requst})
         # I am doing this so that I can display the post like this "object":"http://127.0.0.1:5454/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/764efa883dda1e11db47671c4a3bbd9e"
-        for data in serializer.data:
-            data['post'] = data['liker']['url'] + "posts/"+ str(data['post'])+ "/" 
+        for data in serializer.data: 
+            data['post'] = urljoin(data['author']['url'],  f"posts/{data['post']}/")
+            
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
-
-class LikePostView(APIView):
+class PostLikesView(APIView):
     authentication_classes = [BasicAuthentication]
 
-    def get_author(self,pk):
-        author = get_object_or_404(Author,pk=pk)
-        return author
     def get_post(self,post_id,author_id):
         post = get_object_or_404(Post,id=post_id,author=author_id)
         return post
     
     def get(self,requst,pk,post_id,*args,**kwargs):
-        author = self.get_author(pk)
-        post = self.get_post(author_id=author.id,post_id=post_id)
+        author = get_object_or_404(Author,pk=pk)
+        post = get_object_or_404(Post,id=post_id,author=author.id)
         likes = Like.objects.filter(post=post.id).all()
-        serializer = LikePostSerializer(likes, many=True, context={'request': requst})
+        serializer = PostLikeSerializer(likes, many=True, context={'request': requst})
         
         # I am doing this so that I can display the post like this "object":"http://127.0.0.1:5454/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e/posts/764efa883dda1e11db47671c4a3bbd9e"
-        for data in serializer.data:
-            data['post'] = data['liker']['url'] + "posts/"+ str(data['post'])+ "/"  
+        for data in serializer.data: 
+            data['post'] = urljoin(data['author']['url'],  f"posts/{data['post']}/")
+            
         return Response(serializer.data, status=status.HTTP_200_OK)
         
   
-
-
-
 class FollowRequestsView(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -367,7 +362,6 @@ class FollowRequestProcessor(object):
         return self.response
 
 
-
 class LikePostProcessor(object):
     def __init__(self, request, author_id):
         self.request = request
@@ -390,14 +384,10 @@ class LikePostProcessor(object):
             try:
                 # TODO: for project part 2; if the receiver is a remote author, we need to send a POST request
                 # to the inbox of the remote author; of course we also won't create a local follow request object
-                #port_num = urllib.parse.urlparse(serializer.data['liker']['url']).port
-                #host_name = urllib.parse.urlparse(serializer.data['liker']['url']).hostname
-                #scheme = urllib.parse.urlparse(serializer.data['liker']['url']).scheme
-                #host = scheme + "://" + host_name + ":" + str(port_num)
-                  
-                liker = Author.objects.get(pk=serializer.data['liker']['id'])
+                   
+                author = Author.objects.get(pk=serializer.data['author']['id'])
             except Author.DoesNotExist:
-                return Response({'message': f'liker author with id {serializer.data["liker"]["id"]} does not exist'}, 
+                return Response({'message': f'author with id {serializer.data["author"]["id"]} does not exist'}, 
                                 status=status.HTTP_404_NOT_FOUND)
             try:
                 # TODO: for project part 2; if the sender is a remote author, we might need to add another field
@@ -409,7 +399,7 @@ class LikePostProcessor(object):
                 return Response({'message': f'author with id {author_id} does not exist'}, 
                                 status=status.HTTP_404_NOT_FOUND)
             
-            like = Like.objects.filter(liker=liker,post=post)
+            like = Like.objects.filter(author=author,post=post)
             
             if like.count() > 0:
                 return Response({'message': 'Cannot like a post more than once'}, status=status.HTTP_400_BAD_REQUEST)
@@ -417,7 +407,7 @@ class LikePostProcessor(object):
 
             # https://docs.djangoproject.com/en/4.1/topics/db/transactions/#controlling-transactions-explicitly
             with transaction.atomic():
-                like = Like.objects.create(liker=liker,post=post)
+                like = Like.objects.create(author=author,post=post)
                 # update the inbox of the receiver
                 Inbox.objects.create(target_author=receiver,like=like)
                 # TODO: return the new inbox item when we have an Inbox serializer
@@ -427,8 +417,6 @@ class LikePostProcessor(object):
 
     def get_response(self):
         return self.response
-
-
 
 
 class FollowersView(APIView):

@@ -119,7 +119,7 @@ class Comment(models.Model):
 
 
 class Like(models.Model):
-    liker = models.ForeignKey(Author,on_delete=models.CASCADE)
+    author = models.ForeignKey(Author,on_delete=models.CASCADE)
     post = models.ForeignKey(Post,on_delete=models.CASCADE,null=True)
     comment = models.ForeignKey(Comment,on_delete=models.CASCADE,null=True)
 

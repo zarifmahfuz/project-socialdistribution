@@ -68,11 +68,9 @@ class SendPrivatePostSerializer(serializers.Serializer):
     receiver = ActorSerializer()
 
 class SendLikeSerializer(serializers.Serializer):
-    liker = ActorSerializer()
+    author = ActorSerializer()
     post = PostActorSerializer()
    
-
-
 class FollowRequestSerializer(serializers.ModelSerializer):
     sender = AuthorSerializer(read_only=True)
 
@@ -85,16 +83,12 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         data = super(FollowRequestSerializer, self).to_representation(instance)
         return data['sender']
 
-
-
-class LikePostSerializer(serializers.ModelSerializer):
-    liker = AuthorSerializer(read_only=True)
+class PostLikeSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
     class Meta:
         model = Like
-        fields = ['liker','post']
+        fields = ['author','post']
    
-
-
 class AcceptOrDeclineFollowRequestSerializer(serializers.Serializer):
     follow_request_sender = ActorSerializer()
 
@@ -126,7 +120,7 @@ class InboxFollowRequestSerializer(FollowRequestSerializer):
 class InboxSerializer(serializers.ModelSerializer):
     post = PostSerializer(read_only=True)
     follow_request_received = InboxFollowRequestSerializer(read_only=True)
-    like = LikePostSerializer(read_only=True)
+    like = PostLikeSerializer(read_only=True)
     class Meta:
         model = Inbox
         fields = ['post', 'follow_request_received','like']

@@ -609,7 +609,7 @@ Retreive a list of likes on author 2s post with post id 2 -
 ```
 [
     {
-        "liker": {
+        "author": {
             "url": "http://127.0.0.1:8000/api/authors/1/",
             "id": 1,
             "display_name": "cjenkins123",
@@ -619,7 +619,7 @@ Retreive a list of likes on author 2s post with post id 2 -
         "post": "http://127.0.0.1:8000/api/authors/1/posts/2/"
     },
     {
-        "liker": {
+        "author": {
             "url": "http://127.0.0.1:8000/api/authors/3/",
             "id": 3,
             "display_name": "UltimateBeast123",
@@ -644,7 +644,7 @@ Retreive a list of likes on public posts origninating from author with id 1 -
 ```
 [
     {
-        "liker": {
+        "author": {
             "url": "http://127.0.0.1:8000/api/authors/1/",
             "id": 1,
             "display_name": "cjenkins123",
@@ -663,8 +663,8 @@ Retreive a list of likes on public posts origninating from author with id 1 -
 
 ### Like an authors post
 #### Sample Usage
-Author with id 3 likes author 5s post with id 10-
-<img width="1131" alt="image" src="https://user-images.githubusercontent.com/77307203/200708953-54485be5-579a-42a6-84c5-779f483fcd83.png">
+Author with id 5 likes author 2s post with post id 2-
+<img width="1131" alt="image" src="https://user-images.githubusercontent.com/77307203/200948906-802ba445-cb75-4e75-aef3-aead879a46e4.png">
 
 #### Sample Response
 ```

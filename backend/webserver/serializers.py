@@ -10,9 +10,14 @@ class AuthorSerializer(serializers.HyperlinkedModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
+    likesCount = serializers.SerializerMethodField('count_likes')
+    
     class Meta:
         model = Post
-        fields = ['id','author','created_at','edited_at','title','description','source','origin','unlisted','content_type','content','visibility']
+        fields = ['id','author','created_at','edited_at','title','description','source','origin','unlisted','content_type','content','visibility',"likesCount"]
+    
+    def count_likes(self, post):
+        return Like.objects.filter(post=post.id).all().count()
 
 
 

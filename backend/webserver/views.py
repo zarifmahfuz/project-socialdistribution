@@ -116,6 +116,7 @@ class PostView(APIView):
         post = self.get_post(post_id,author.id)
         if post.visibility == "PUBLIC":
             serializer = PostSerializer(post, context={'request': request})
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'requested post is not public'}, status=status.HTTP_400_BAD_REQUEST)

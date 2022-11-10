@@ -504,6 +504,9 @@ class InboxView(APIView, PaginationHandlerMixin):
             )
         else:
             serializer = self.get_serializer(request, queryset)
+        for data in serializer.data:
+            if data['type'] == "like":
+                data['post'] = urljoin(data['author']['url'],  f"posts/{data['post']}/")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, author_id):

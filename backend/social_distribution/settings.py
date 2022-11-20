@@ -90,7 +90,7 @@ if "DATABASE_URL" in os.environ:
     DATABASE = dj_database_url.config(
         conn_max_age=MAX_CONN_AGE, ssl_require=True
     )
-elif "LOCAL_POSTGRESQL" in os.environ:
+elif os.environ.get('LOCAL_POSTGRESQL') == 'true':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

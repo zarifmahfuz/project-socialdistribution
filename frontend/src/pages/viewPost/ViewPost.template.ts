@@ -1,10 +1,13 @@
+import { icon } from "@fortawesome/fontawesome-svg-core";
 import { html, when } from "@microsoft/fast-element";
 import { layoutComponent } from "../../components/base-layout";
 import { markdownComponent } from "../../components/markdown-component";
 import { ContentType } from "../../libs/api-service/SocialApiModel";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { ViewPost } from "./ViewPost";
+import {likesModalComponent} from "../../components/likesModal";
 
+likesModalComponent;
 layoutComponent;
 markdownComponent;
 
@@ -33,6 +36,19 @@ export const ViewPostPageTemplate = html<ViewPost>`
                     `)}
                     <div class="post-container3">
                         <span>${x => x.post?.author?.displayName} | ${x => new Date(x.post?.published || new Date()).toLocaleDateString()}</span>
+                        <div class="like-post-icon" @click="${x => x.likePost()}" :innerHTML="${_ => icon({prefix: 'fas', iconName: "thumbs-up"}).html}"></div>
+                        <div @click="${x => x.toggleModal()}">
+                            See Likes
+                        </div>
+                        ${when (x => x.viewLikes, html`
+                            <fast-dialog modal="true">
+                                <likes-modal 
+                                    :postAuthorId="${x => x.post?.author.id}"
+                                    :postId="${x => x.postId}"
+                                    :parent="${x => x}"
+                                ></likes-modal>
+                            </fast-dialog>
+                        `)}
                     </div>
                 </div>
             </div>

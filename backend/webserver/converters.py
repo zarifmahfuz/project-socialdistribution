@@ -206,6 +206,7 @@ class Team11Converter(Converter):
                 "origin": "www.default.com" if post.source == "" else post.source,
                 "description": post.description,
                 "contentType": post.content_type,
+                "title": post.title,
                 "content": post.content,
                 "comments": join_urls(post.get_url(request), "comments"),
                 "published": f"{post.created_at}",

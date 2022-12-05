@@ -1,8 +1,8 @@
 import { icon } from "@fortawesome/fontawesome-svg-core";
-import { html, when } from "@microsoft/fast-element";
+import {html, repeat, when} from "@microsoft/fast-element";
 import { layoutComponent } from "../../components/base-layout";
 import { markdownComponent } from "../../components/markdown-component";
-import { ContentType } from "../../libs/api-service/SocialApiModel";
+import {Comment, ContentType} from "../../libs/api-service/SocialApiModel";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { ViewPost } from "./ViewPost";
 import {likesModalComponent} from "../../components/likesModal";
@@ -72,6 +72,25 @@ export const ViewPostPageTemplate = html<ViewPost>`
                 ${when(x => x.userId == x.profileId, html<ViewPost>`
                     <a class="edit-post-button" href="/edit-post/${x => x.userId}/${x => x.post?.id}">Edit Post</a>
                 `)}
+
+
+                ${when(x => x.commentsLoaded, html`
+            <ul class="post-ul list">
+                <li class="post-li list-item">
+                    ${repeat(x => x.comments || [], html<Comment>`
+                    <div class="comment-container">
+                        <span class="comment-display-name">${x => x.author.display_name}</span>
+                        <span class="comment-content">${x => x.comment}</span>
+                        <img
+                                alt="image"
+                                src="https://play.teleporthq.io/static/svg/default-img.svg"
+                                class="comment-profile-icon"
+                        />
+                    </div>
+                `)}
+                </li>
+            </ul>
+        `)}
             </div>
         `)}
         ${when(x => !x.post, html<ViewPost>`
@@ -80,18 +99,4 @@ export const ViewPostPageTemplate = html<ViewPost>`
     </page-layout>
 `;
 
-//         <ul class="post-ul list">
-//             <li class="post-li list-item">
-//                 ${repeat(x => x.post?.comments || [], html<string>`
-//                     <div class="comment-container">
-//                         <span class="comment-display-name">${x.display_name}</span>
-//                         <span class="comment-content">${x.content}</span>
-//                         <img
-//                                 alt="image"
-//                                 src="https://play.teleporthq.io/static/svg/default-img.svg"
-//                                 class="comment-profile-icon"
-//                         />
-//                     </div>
-//                 `)}
-//             </li>
-//         </ul>
+

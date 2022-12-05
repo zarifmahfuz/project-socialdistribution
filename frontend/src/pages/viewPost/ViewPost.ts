@@ -1,13 +1,21 @@
 import { Page } from "../Page";
 import { observable } from "@microsoft/fast-element";
 import { SocialApi } from "../../libs/api-service/SocialApi";
-import { Post } from "../../libs/api-service/SocialApiModel";
+import {Comment, Post} from "../../libs/api-service/SocialApiModel";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faThumbsUp, faCommentDots } from "@fortawesome/free-solid-svg-icons";
+
+
 
 export class ViewPost extends Page {
   @observable
   public post?: Post;
+
+  @observable
+  public comments?: Comment[];
+
+  @observable
+  public commentsLoaded: boolean = false;
 
   @observable
   public loadedPostText: string = "";
@@ -27,7 +35,9 @@ export class ViewPost extends Page {
     this.removeAttribute("postId");
     if (postId) {
       this.postId = postId;
-      this.getPost(postId);
+      this.getPost(postId).then(() => {
+        this.getComments()
+      })
     }
 
     this.addIcons();
@@ -79,6 +89,28 @@ export class ViewPost extends Page {
         this.post.author.url
       );
     } catch (e) {
+      console.error(e);
+    }
+  }
+
+  public async getComments() {
+    if (!this.post || !this.post.id || !(<any>this.post.author).id) {
+      console.error("Cannot get comments without the post id and the author id");
+      return;
+    }
+
+    try {
+      const comments = await SocialApi.getComments(
+        (<any>this.post.author).id,
+        this.post.id
+      );
+      console.log("Fetched comments:", comments);
+      if (comments) {
+        this.comments = comments;
+        this.commentsLoaded = true
+      }
+    } catch (e) {
+      this.commentsLoaded = false;
       console.error(e);
     }
   }

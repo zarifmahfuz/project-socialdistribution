@@ -442,5 +442,30 @@ export namespace SocialApi {
 
         return text;
     }
+
+    export async function getComments(
+      postAuthorId: string,
+      postId: string
+    ) {
+        const credentialType: RequestCredentials = "include";
+        const headers: HeadersInit = new Headers();
+        headers.set("Authorization", authHeader());
+
+        const requestOptions = {
+            method: "GET",
+            credentials: credentialType,
+            headers: headers,
+        };
+
+        const url = new URL(SocialApiUrls.AUTHORS + postAuthorId + SocialApiUrls.POSTS + postId + SocialApiUrls.COMMENTS, window.location.origin);
+        const response = await fetch(url, requestOptions);
+        const text = await response.text();
+        if (!response.ok) {
+            throw new Error(response.statusText)
+        }
+
+        console.log("Success:", JSON.parse(text));
+        return JSON.parse(text);
+    }
 }
 

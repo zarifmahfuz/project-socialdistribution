@@ -27,7 +27,7 @@ export class Author {
 
 export class Post {
     id: string;
-    
+
     title?: string;
 
     source?: string;
@@ -59,6 +59,20 @@ export class Post {
     constructor(id: string) {
         this.id = id;
     }
+}
+
+export type Comment = {
+    author: {
+        url: string,
+        id: string,
+        display_name: string,
+        profile_image: string,
+        github_handle: string
+    },
+    comment: string,
+    content_type: string,
+    created_at: string,
+    id: string
 }
 
 export class FollowRequest {

@@ -23,7 +23,7 @@ export const LikesModalTemplate = html<LikesModal>`
                 `)}
             </ul>
         </div>
-        <button @click="${x => x.parent.toggleModal()}">
+        <button @click="${x => x.parent.toggleLikesModal()}">
             Close
         </button>
     </div>

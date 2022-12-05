@@ -3,7 +3,7 @@ import { observable } from "@microsoft/fast-element";
 import { SocialApi } from "../../libs/api-service/SocialApi";
 import { Post } from "../../libs/api-service/SocialApiModel";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
+import { faThumbsUp, faCommentDots } from "@fortawesome/free-solid-svg-icons";
 
 export class ViewPost extends Page {
   @observable
@@ -13,7 +13,10 @@ export class ViewPost extends Page {
   public loadedPostText: string = "";
 
   @observable
-  public viewLikes: Boolean = false;
+  public viewLikes: boolean = false;
+
+  @observable
+  public viewCreateCommentModal: boolean = false;
 
   @observable
   public postId?: string;
@@ -35,7 +38,7 @@ export class ViewPost extends Page {
   }
 
   private addIcons() {
-    library.add(faThumbsUp);
+    library.add(faThumbsUp, faCommentDots);
   }
 
   private async getPost(postId: string) {
@@ -80,8 +83,13 @@ export class ViewPost extends Page {
     }
   }
 
-  public async toggleModal() {
-    console.log("Modal toggled, new value:", !this.viewLikes);
+  public async toggleLikesModal() {
+    console.log("Likes modal toggled, new value:", !this.viewLikes);
     this.viewLikes = !this.viewLikes
+  }
+
+  public async toggleCreateCommentModal() {
+    console.log("Create comment modal toggled, new value:", !this.viewCreateCommentModal);
+    this.viewCreateCommentModal = !this.viewCreateCommentModal;
   }
 }

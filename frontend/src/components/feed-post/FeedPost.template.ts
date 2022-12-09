@@ -15,7 +15,7 @@ export const FeedPostTemplate = html<FeedPost>`
         ></author-info>
         ${when(x => x.post?.contentType == ContentType.Markdown && import('../markdown-component'), html<FeedPost>`
             <markdown-component
-                :content=${x => x.post?.description + "..."}
+                :content=${x => x.post?.description}
             ></markdown-component>
         `)}
         ${when(x => x.post?.contentType == ContentType.Plain, html<FeedPost>`

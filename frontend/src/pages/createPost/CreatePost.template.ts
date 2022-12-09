@@ -30,7 +30,7 @@ export const CreatePostPageTemplate = html<CreatePost>`
                         placeholder="Description"
                         class="create-post-textarea textarea"
                         name="description"
-                        maxlength="100"
+                        maxlength="280"
                         required
                 ></textarea>
                 <textarea

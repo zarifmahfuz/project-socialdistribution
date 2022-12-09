@@ -7,6 +7,8 @@ export const AuthorInfoTemplate = html<AuthorInfo>`
             <img class="profile-image" src="${x => x.author?.profileImage}">
         `)}
         <a href="${x => x.getAuthorUrl(x.authorId)}">${x => x.author?.displayName + " "}</a>
-        <small>${x => " | " + x.published?.toLocaleString() || " | " + new Date().toLocaleString()}</small>
+        ${when(x => x.published, html<AuthorInfo>`
+            <small>${x => " | " + x.published?.toLocaleString()}</small>
+        `)}
     </h4>
 `;

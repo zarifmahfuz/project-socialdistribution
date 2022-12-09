@@ -15,6 +15,12 @@ export const UploadImageStyles = css`
     align-items: center;
   }
 
+  .image-form form {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+  }
+
   .image-form button {
 	align-self: center;
     margin-top: var(--dl-space-space-unit);

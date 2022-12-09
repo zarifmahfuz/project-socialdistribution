@@ -8,7 +8,9 @@ export type ContentType = keyof typeof ContentType;
 
 export const ApiObjectType = Object.freeze({
     follow: "follow",
-    post: "post"
+    post: "post",
+    comment: "comment",
+    like: "like"
 });
 
 export type ApiObjectType = keyof typeof ApiObjectType;
@@ -86,6 +88,8 @@ export class Like {
     author?: Author;
 
     post?: string;
+
+    comment?: string;
 }
 
 export class PaginatedResponse {

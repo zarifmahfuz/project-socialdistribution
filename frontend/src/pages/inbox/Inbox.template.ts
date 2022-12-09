@@ -1,12 +1,16 @@
 import { html, ref, repeat, when } from "@microsoft/fast-element";
+import { commentComponent } from "../../components/comment-component";
 import { feedPost } from "../../components/feed-post";
 import { followerComponent } from "../../components/follower-component";
-import { ContentType, FollowRequest, Post } from "../../libs/api-service/SocialApiModel";
+import { likeComponent } from "../../components/like-component";
+import { ContentType, FollowRequest, Post, Comment, Like } from "../../libs/api-service/SocialApiModel";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { Inbox } from "./Inbox";
 
 feedPost;
 followerComponent;
+commentComponent;
+likeComponent;
 
 export const InboxPageTemplate = html<Inbox>`
     <page-layout
@@ -29,6 +33,28 @@ export const InboxPageTemplate = html<Inbox>`
                         :request=${_ => true}
                         :layoutStyleClass=${(x, c) => LayoutHelpers.getLayoutStyle(c.parent.layoutType)}>
                     </follower-component>
+                `)}
+                ${when(x => x instanceof Comment, html<Comment>`
+                    <comment-component
+                        :comment=${x => x.comment}
+                        :author=${x => x.author}
+                        :authorId=${x => x.author?.id}
+                        :published=${x => x.published}
+                        :commentId=${x => x.id}
+                        :user=${(x, c) => c.parent.user}
+                        :userId=${(x, c) => c.parent.userId}
+                        :inbox=${_ => true}>
+                    </comment-component>
+                `)}
+                ${when(x => x instanceof Like, html<Like>`
+                    <like-component
+                        :author=${x => x.author}
+                        :authorId=${x => x.author?.id}
+                        :post=${x => x.post}
+                        :comment=${x => x.comment}
+                        :userId=${(x, c) => c.parent.userId}
+                        :layoutStyleClass=${(x, c) => LayoutHelpers.getLayoutStyle(c.parent.layoutType)}>
+                    </like-component>
                 `)}
             `)}
             <div ${ref("loadMore")} class="loading"></div>

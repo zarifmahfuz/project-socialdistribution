@@ -117,6 +117,7 @@ export namespace SocialApiTransform {
             myLike.author = author
         }
         myLike.post = likeData.post;
+        myLike.comment = likeData.comment;
 
         return myLike;
     }

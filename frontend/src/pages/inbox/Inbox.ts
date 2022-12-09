@@ -55,16 +55,43 @@ export class Inbox extends PaginatedPage {
             return;
         }
 
-        for (var data of this.paginatedResponse?.results) {
-            if (data.type == ApiObjectType.post) {
-                const post = SocialApiTransform.postDataTransform(data);
-                if (post) {
-                    this.inbox.push(post);
+        for (const data of this.paginatedResponse?.results) {
+            if (!data) {
+                continue;
+            }
+
+            if (!data.type) {
+                continue;
+            }
+
+            switch (data.type) {
+                case ApiObjectType.post: {
+                    const post = SocialApiTransform.postDataTransform(data);
+                    if (post) {
+                        this.inbox.push(post);
+                    }
+                    continue;
                 }
-            } else if (data.type == ApiObjectType.follow) {
-                const followRequest = SocialApiTransform.followRequestDataTransform(data);
-                if (followRequest) {
-                    this.inbox.push(followRequest);
+                case ApiObjectType.follow: {
+                    const followRequest = SocialApiTransform.followRequestDataTransform(data);
+                    if (followRequest) {
+                        this.inbox.push(followRequest);
+                    }
+                    continue;
+                }
+                case ApiObjectType.comment: {
+                    const comment = SocialApiTransform.commentDataTransform(data);
+                    if (comment) {
+                        this.inbox.push(comment);
+                    }
+                    continue;
+                }
+                case ApiObjectType.like: {
+                    const like = SocialApiTransform.likeDataTransform(data);
+                    if (like) {
+                        this.inbox.push(like);
+                    }
+                    continue;
                 }
             }
         }

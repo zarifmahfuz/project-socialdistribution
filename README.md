@@ -31,7 +31,7 @@ Additions Made Since Project Presentation
 * Inbox
 ![image](https://user-images.githubusercontent.com/45117618/206813438-7966b83c-da36-4368-acb1-0b14bc13b8a9.png)
 * Sharing Image Posts
-![image](https://user-images.githubusercontent.com/45117618/206813496-6d0425f1-2c2e-454c-8d2e-8a0aecb094f9.png)
+![image](https://user-images.githubusercontent.com/45117618/206813538-759d8419-b221-418c-8dd7-8b1bf9005fed.png)
 
 Setup
 =================

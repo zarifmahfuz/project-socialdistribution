@@ -23,8 +23,11 @@ Teams that we connected to:
 Additions Made Since Project Presentation
 =================
 * Likes
+![image](https://user-images.githubusercontent.com/45117618/206813324-3fcb19dd-4568-4119-a477-30afcf31cdd8.png)
 * Comments
+![image](https://user-images.githubusercontent.com/45117618/206813299-bf261c7a-8be3-4d98-be2b-90a98fa0d731.png)
 * Image Posts
+![image](https://user-images.githubusercontent.com/45117618/206813271-c457604f-50fb-4fe3-9d93-e5c34fc190c4.png)
 
 Setup
 =================

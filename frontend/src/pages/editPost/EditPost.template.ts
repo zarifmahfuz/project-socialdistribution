@@ -1,9 +1,11 @@
 import { html, ref, when } from "@microsoft/fast-element";
 import { layoutComponent } from "../../components/base-layout";
+import { uploadImage } from "../../components/upload-image";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { EditPost } from "./EditPost";
 
 layoutComponent;
+uploadImage;
 
 export const EditPostPageTemplate = html<EditPost>`
   <page-layout
@@ -37,12 +39,6 @@ export const EditPostPageTemplate = html<EditPost>`
                     class="edit-post-textarea textarea"
                     name="content"
             >${x => x.post?.content}</textarea>
-            <button class="edit-post-button button" type="button">
-            <span class="edit-post-text01">
-              <span class="edit-post-text02">Upload Image</span>
-              <br/>
-            </span>
-            </button>
             <div class="edit-post-container2">
                 <span class="edit-post-text04">Visibility:</span>
                 <select class="edit-post-select">
@@ -75,6 +71,9 @@ export const EditPostPageTemplate = html<EditPost>`
                 </button>
             </div>
         </form>
+        <upload-image
+          :userId="${x => x.userId}"
+        ></upload-image>
     </div>
     `)}
     ${when(x => !x.post, html<EditPost>`

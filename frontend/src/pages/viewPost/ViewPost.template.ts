@@ -4,10 +4,8 @@ import { layoutComponent } from "../../components/base-layout";
 import { ContentType, Comment } from "../../libs/api-service/SocialApiModel";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { ViewPost } from "./ViewPost";
-import { likesModalComponent } from "../../components/likesModal";
 import { authorInfo } from "../../components/author-info";
 
-likesModalComponent;
 layoutComponent;
 authorInfo;
 

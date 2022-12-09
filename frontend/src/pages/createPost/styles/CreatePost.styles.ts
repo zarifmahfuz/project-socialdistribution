@@ -1,7 +1,7 @@
-import {css} from "@microsoft/fast-element";
-import {ResetStyles} from "./reset.styles";
-import {DefaultStyles} from "./default.styles";
-import {GeneralStyles} from "./general.styles";
+import { css } from "@microsoft/fast-element";
+import { ResetStyles } from "./reset.styles";
+import { DefaultStyles } from "./default.styles";
+import { GeneralStyles } from "./general.styles";
 
 export const CreatePostPageStyles = css`
   ${ResetStyles}
@@ -40,7 +40,7 @@ export const CreatePostPageStyles = css`
     background-image: linear-gradient(93.58deg, #9F83C7 0%, #ABD9FF 100%);;
   }
   .create-post-text {
-    color: #277bc0;
+    color: #002c50;
     font-size: 3rem;
     text-align: center;
   }
@@ -117,6 +117,7 @@ export const CreatePostPageStyles = css`
   .create-post-text6 {
     font-weight: 700;
   }
+
   @media(max-width: 767px) {
     .create-post-banner {
       padding-left: var(--dl-space-space-twounits);

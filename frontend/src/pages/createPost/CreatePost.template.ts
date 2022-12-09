@@ -1,9 +1,11 @@
-import {html, ref} from "@microsoft/fast-element";
+import { html, ref, when } from "@microsoft/fast-element";
 import { layoutComponent } from "../../components/base-layout";
+import { uploadImage } from "../../components/upload-image";
 import { LayoutHelpers } from "../../libs/core/Helpers";
-import {CreatePost} from './CreatePost';
+import { CreatePost } from './CreatePost';
 
 layoutComponent;
+uploadImage;
 
 export const CreatePostPageTemplate = html<CreatePost>`
     <page-layout
@@ -22,19 +24,21 @@ export const CreatePostPageTemplate = html<CreatePost>`
                         placeholder="Title"
                         class="create-post-textinput input"
                         name="title"
+                        required
                 />
                 <textarea
                         placeholder="Description"
                         class="create-post-textarea textarea"
                         name="description"
                         maxlength="100"
+                        required
                 ></textarea>
                 <textarea
                         placeholder="Content"
                         class="create-post-textarea textarea"
                         name="content"
+                        required
                 ></textarea>
-                <input class="create-post-button button create-post-text1 create-post-text2" type="file" name="image" accept="image/png, image/jpeg">
                 <div class="create-post-container2">
                     <span class="create-post-text4">Visibility:</span>
                     <select class="create-post-select" name="visibility">
@@ -52,11 +56,14 @@ export const CreatePostPageTemplate = html<CreatePost>`
                 </div>
                 <button class="create-post-button1 button">
                 <span class="create-post-text5">
-                <span class="create-post-text6">Create</span>
+                <span class="create-post-text6">Create Post</span>
                 <br/>
                 </span>
                 </button>
             </form>
+            <upload-image
+                :userId="${x => x.userId}"
+            ></upload-image>
         </div>
     </page-layout>
 `;

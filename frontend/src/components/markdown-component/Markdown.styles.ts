@@ -13,7 +13,7 @@ export const MarkdownStyles = css`
 
     img {
         margin: 10px;
-        max-width: 100%;
+        max-width:  97.25%;
         object-fit: cover;
         object-position: 50%;
         background-color: darkgrey;

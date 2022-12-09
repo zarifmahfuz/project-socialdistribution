@@ -18,7 +18,7 @@ export const FeedPostTemplate = html<FeedPost>`
             ></markdown-component>
         `)}
         ${when(x => x.post?.contentType == ContentType.Plain, html<FeedPost>`
-            <p>${x => x.post?.description}...</p>
+            <p>${x => x.post?.description}</p>
         `)}
     </article>
 `;

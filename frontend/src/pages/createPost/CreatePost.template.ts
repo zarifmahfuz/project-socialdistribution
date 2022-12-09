@@ -7,10 +7,10 @@ layoutComponent;
 
 export const CreatePostPageTemplate = html<CreatePost>`
     <page-layout
-        :userId="${x => x.userId}"
-        :user="${x => x.user}"
-        :layoutType="${x => x.layoutType}"
-        :layoutStyleClass="${x => LayoutHelpers.getLayoutStyle(x.layoutType)}">
+            :userId="${x => x.userId}"
+            :user="${x => x.user}"
+            :layoutType="${x => x.layoutType}"
+            :layoutStyleClass="${x => LayoutHelpers.getLayoutStyle(x.layoutType)}">
         <div class="create-post-container">
             <div class="create-post-banner">
                 <h1 class="create-post-text">Create A Post</h1>
@@ -18,7 +18,6 @@ export const CreatePostPageTemplate = html<CreatePost>`
             <form ${ref("form")} @submit="${(x, c) => x.createPost(c.event)}" class="create-post-container1">
                 <input
                         type="text"
-                        required=""
                         autofocus=""
                         placeholder="Title"
                         class="create-post-textinput input"
@@ -35,12 +34,7 @@ export const CreatePostPageTemplate = html<CreatePost>`
                         class="create-post-textarea textarea"
                         name="content"
                 ></textarea>
-                <button class="create-post-button button">
-                <span class="create-post-text1">
-                <span class="create-post-text2">Upload Image</span>
-                <br/>
-                </span>
-                </button>
+                <input class="create-post-button button create-post-text1 create-post-text2" type="file" name="image" accept="image/png, image/jpeg">
                 <div class="create-post-container2">
                     <span class="create-post-text4">Visibility:</span>
                     <select class="create-post-select" name="visibility">

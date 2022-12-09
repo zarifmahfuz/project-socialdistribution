@@ -5,9 +5,11 @@ import { ContentType, Comment } from "../../libs/api-service/SocialApiModel";
 import { LayoutHelpers } from "../../libs/core/Helpers";
 import { ViewPost } from "./ViewPost";
 import { authorInfo } from "../../components/author-info";
+import { commentComponent } from "../../components/comment-component";
 
 layoutComponent;
 authorInfo;
+commentComponent;
 
 const LikesModal = html<ViewPost>`
     <div id="likes-modal" class="${x => x.likesModalStyle}">
@@ -31,27 +33,6 @@ const LikesModal = html<ViewPost>`
     </div>
 `;
 
-const PostCommentModal = html<ViewPost>`
-    <form ${ref("form")} @submit="${(x, c) => x.postComment(c.event)}" id="comments-modal" class="${x => x.commentsModalStyle}">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-header-text">Make a comment</h2>
-                <button type="button" class="close-modal" @click="${x => x.closePostCommentModal()}">
-                    Close
-                </button>
-            </div>
-            <div class="post-comment-area">
-                <textarea
-                    placeholder="Write your comment here..."
-                    class="comment-textarea textarea"
-                    name="comment"
-                ></textarea>
-                <button class="make-comment">Comment</button>
-            </div>
-        </div>
-    </form>
-`;
-
 export const ViewPostPageTemplate = html<ViewPost>`
     <page-layout
         :userId="${x => x.userId}"
@@ -59,7 +40,6 @@ export const ViewPostPageTemplate = html<ViewPost>`
         :layoutType="${x => x.layoutType}"
         :layoutStyleClass="${x => LayoutHelpers.getLayoutStyle(x.layoutType)}">
         ${LikesModal}
-        ${PostCommentModal}
         ${when(x => x.post, html<ViewPost>`
         <div class="post-container">
             <div class="post-container1">
@@ -84,10 +64,16 @@ export const ViewPostPageTemplate = html<ViewPost>`
                                 See <strong>${x => x.post?.likes}</strong> Likes
                             </div>
                         </div>
-                        <div class="post-actions">
-                            <div class="post-action-icon ${x => x.userLikedPost ? "liked" : ""}" @click="${x => x.likePost()}" :innerHTML="${_ => icon({ prefix: 'fas', iconName: "thumbs-up" }).html}"></div>
-                            <div class="post-action-icon" @click="${x => x.openPostCommentModal()}" :innerHTML="${_ => icon({ prefix: 'fas', iconName: "comment-dots" }).html}"></div>
-                        </div>
+                        <actions-component
+                            :userId=${x => x.userId}
+                            :postId=${x => x.postId}
+                            :profileId=${x => x.profileId}
+                            :post=${x => x.post}
+                            :user=${x => x.user}
+                            :profile=${x => x.profile}
+                            :postComponent=${x => x}
+                            :userLikedPost=${x => x.userLikedPost}>
+                        </actions-component>
                     </div>
                 </div>
             </div>
@@ -96,14 +82,15 @@ export const ViewPostPageTemplate = html<ViewPost>`
             `)}
             <ul class="comments-box">
                 ${repeat(x => x.comments, html<Comment>`
-                <li class="comment-container">
-                    <author-info
-                        :authorId=${x => x.author?.id}
-                        :author=${x => x.author}
-                        :published=${x => x.published}
-                    ></author-info>
-                    <span class="comment-content">${x => x.comment}</span>
-                </li>`
+                <comment-component
+                    :comment=${x => x.comment}
+                    :author=${x => x.author}
+                    :authorId=${x => x.author?.id}
+                    :published=${x => x.published}
+                    :commentId=${x => x.id}
+                    :user=${(x, c) => c.parent.user}
+                    :userId=${(x, c) => c.parent.userId}>
+                </comment-component>`
                 )}
             </ul>
         </div>
